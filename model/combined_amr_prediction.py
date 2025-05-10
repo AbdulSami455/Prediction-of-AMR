@@ -212,42 +212,74 @@ def plot_feature_importance(model, feature_names, model_name, output_dir):
         plt.savefig(os.path.join(output_dir, f'feature_importance_{model_name}.png'))
         plt.close()
 
-def plot_azm_trends(metadata, output_dir):
-    """Plot trends in Azithromycin resistance over time by continent."""
-    azm_df = metadata[metadata['azm_sr'].notna()][['Year', 'Continent', 'azm_sr']]
+def plot_antibiotic_trends(metadata, output_dir):
+    """Plot trends in antibiotic resistance over time by continent for all antibiotics."""
+    antibiotics = ['azm_sr', 'cip_sr', 'cro_sr', 'cfx_sr', 'tet_sr', 'pen_sr']
     
-    # Create pivot table
-    pivot_df = pd.pivot_table(azm_df, index=['Year', 'Continent'], 
-                             columns='azm_sr', aggfunc='size', fill_value=0)
-    pivot_df = pivot_df.reset_index()
-    
-    # Create subplots for each continent
-    continents = pivot_df['Continent'].unique()
-    fig, axes = plt.subplots(3, 2, figsize=(20, 30))
-    fig.suptitle('Azithromycin Resistance Trends by Continent', fontsize=24, y=0.95)
-    
-    for i, continent in enumerate(continents):
-        ax = axes[i // 2, i % 2]
-        continent_data = pivot_df[pivot_df['Continent'] == continent]
+    for antibiotic in antibiotics:
+        print(f"\nAnalyzing trends for {antibiotic}...")
+        # Filter data for current antibiotic
+        ab_df = metadata[metadata[antibiotic].notna()][['Year', 'Continent', antibiotic]]
         
-        sns.lineplot(data=continent_data, x='Year', y='Resistant', 
-                    ax=ax, label='Resistant', marker='o')
-        sns.lineplot(data=continent_data, x='Year', y='Sensitive', 
-                    ax=ax, label='Sensitive', marker='o')
+        # Create pivot table
+        pivot_df = pd.pivot_table(ab_df, index=['Year', 'Continent'], 
+                                columns=antibiotic, aggfunc='size', fill_value=0)
+        pivot_df = pivot_df.reset_index()
         
-        ax.set_title(f'{continent}', fontsize=18)
-        ax.set_xlabel('Year', fontsize=14)
-        ax.set_ylabel('Count', fontsize=14)
-        ax.legend(fontsize=12)
-        ax.tick_params(axis='both', which='major', labelsize=12)
-        ax.tick_params(axis='x', rotation=45)
-    
-    # Remove the empty subplot
-    axes[2, 1].remove()
-    
-    plt.tight_layout(rect=[0, 0, 1, 0.95])
-    plt.savefig(os.path.join(output_dir, 'azm_trends.png'))
-    plt.close()
+        # Create subplots for each continent
+        continents = pivot_df['Continent'].unique()
+        fig, axes = plt.subplots(3, 2, figsize=(20, 30))
+        fig.suptitle(f'{antibiotic.upper()} Resistance Trends by Continent', fontsize=24, y=0.95)
+        
+        for i, continent in enumerate(continents):
+            ax = axes[i // 2, i % 2]
+            continent_data = pivot_df[pivot_df['Continent'] == continent]
+            
+            # Plot trends
+            sns.lineplot(data=continent_data, x='Year', y='Resistant', 
+                        ax=ax, label='Resistant', marker='o', color='red')
+            sns.lineplot(data=continent_data, x='Year', y='Sensitive', 
+                        ax=ax, label='Sensitive', marker='o', color='blue')
+            
+            # Calculate and display statistics
+            total_cases = continent_data['Resistant'].sum() + continent_data['Sensitive'].sum()
+            resistance_rate = (continent_data['Resistant'].sum() / total_cases * 100).round(2)
+            
+            ax.set_title(f'{continent}\nResistance Rate: {resistance_rate}%', fontsize=18)
+            ax.set_xlabel('Year', fontsize=14)
+            ax.set_ylabel('Count', fontsize=14)
+            ax.legend(fontsize=12)
+            ax.tick_params(axis='both', which='major', labelsize=12)
+            ax.tick_params(axis='x', rotation=45)
+            
+            # Add grid for better readability
+            ax.grid(True, linestyle='--', alpha=0.7)
+        
+        # Remove empty subplots if any
+        for i in range(len(continents), 6):
+            fig.delaxes(axes[i // 2, i % 2])
+        
+        plt.tight_layout(rect=[0, 0, 1, 0.95])
+        plt.savefig(os.path.join(output_dir, f'{antibiotic}_trends.png'))
+        plt.close()
+        
+        # Create summary statistics
+        summary_stats = []
+        for continent in continents:
+            continent_data = pivot_df[pivot_df['Continent'] == continent]
+            total_cases = continent_data['Resistant'].sum() + continent_data['Sensitive'].sum()
+            resistance_rate = (continent_data['Resistant'].sum() / total_cases * 100).round(2)
+            summary_stats.append({
+                'Continent': continent,
+                'Total Cases': total_cases,
+                'Resistance Rate (%)': resistance_rate,
+                'Resistant Cases': continent_data['Resistant'].sum(),
+                'Sensitive Cases': continent_data['Sensitive'].sum()
+            })
+        
+        # Save summary statistics to CSV
+        summary_df = pd.DataFrame(summary_stats)
+        summary_df.to_csv(os.path.join(output_dir, f'{antibiotic}_trends_summary.csv'), index=False)
 
 def plot_confusion_matrices(metrics_df, output_dir):
     """Plot confusion matrices for each model."""
@@ -324,7 +356,7 @@ def main():
     plot_continent_distribution(metadata, output_dir)
     plot_antibiotic_distribution(metadata, output_dir)
     plot_sensitivity_distribution(metadata, output_dir)
-    plot_azm_trends(metadata, output_dir)
+    plot_antibiotic_trends(metadata, output_dir)
     
     # Define models
     models = [
