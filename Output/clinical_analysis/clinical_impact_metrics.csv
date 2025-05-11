@@ -1,0 +1,2 @@
+Total Patients,Correctly Identified Resistant Cases,Correctly Identified Sensitive Cases,False Resistant Predictions,False Sensitive Predictions,Accuracy,Potential Unnecessary Antibiotics Avoided,Potential Missed Resistant Cases
+3650,549,2995,20,86,0.9709589041095891,549,86

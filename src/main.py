@@ -14,6 +14,7 @@ from analysis.by_antibiotic.antibiotic_analyzer import (analyze_antibiotic_distr
                                                       analyze_antibiotic_combinations)
 from analysis.metrics.metrics_analyzer import (analyze_model_metrics, analyze_fold_performance,
                                              analyze_confusion_matrices)
+from analysis.clinical.clinical_impact_analyzer import analyze_clinical_impact
 
 def main():
     # Get the current working directory
@@ -30,7 +31,8 @@ def main():
         'antibiotic': os.path.join(output_dir, 'antibiotic_analysis'),
         'metrics': os.path.join(output_dir, 'model_metrics'),
         'plots': os.path.join(output_dir, 'plots'),
-        'maps': os.path.join(output_dir, 'maps')  # New directory for geographical maps
+        'maps': os.path.join(output_dir, 'maps'),
+        'clinical': os.path.join(output_dir, 'clinical_analysis')
     }
     
     for dir_path in analysis_dirs.values():
@@ -57,9 +59,6 @@ def main():
     plot_antibiotic_distribution(cleaned_metadata, analysis_dirs['plots'])
     plot_sensitivity_distribution(cleaned_metadata, analysis_dirs['plots'])
     plot_antibiotic_trends(cleaned_metadata, analysis_dirs['plots'])
-    
-    # Generate geographical visualizations
-    print("\nGenerating geographical visualizations...")
     plot_geographical_distribution(cleaned_metadata, analysis_dirs['maps'])
     
     # Analyze continent-specific data
@@ -103,6 +102,14 @@ def main():
         plot_learning_curves(model, feature, target, model_name, analysis_dirs['plots'])
         if model_name in ['Random Forest', 'Gradient Boosting']:
             plot_feature_importance(model, feature.columns, model_name, analysis_dirs['plots'])
+    
+    # Analyze clinical impact
+    print("\nAnalyzing clinical impact...")
+    for model_name, model in models:
+        if model_name in ['Random Forest', 'Gradient Boosting']:
+            print(f"\nAnalyzing clinical impact for {model_name}...")
+            clinical_impact = analyze_clinical_impact(model, feature, target, 
+                                                    analysis_dirs['clinical'])
     
     print("\nAnalysis complete. Results saved in the Output directory.")
 

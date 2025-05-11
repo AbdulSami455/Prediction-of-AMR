@@ -1,0 +1,14 @@
+Clinical Impact Report
+===================
+
+Model Performance Summary:
+------------------------
+Total Patients Analyzed: 3650
+Overall Accuracy: 97.10%
+
+Clinical Impact:
+--------------
+- Correctly Identified Resistant Cases: 549
+- Correctly Identified Sensitive Cases: 2995
+- Potential Unnecessary Antibiotics Avoided: 549
+- Potential Missed Resistant Cases: 86

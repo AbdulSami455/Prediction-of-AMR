@@ -1,0 +1,4 @@
+model,accuracy,balanced_accuracy,precision,recall,f1_score,mcc,kappa,auc_roc
+Gradient Boosting,0.9619,0.9076,0.951,0.8241,0.8828,0.8635,0.8602,0.9559
+Random Forest,0.9559,0.8915,0.9454,0.7926,0.862,0.8408,0.836,0.9597
+SVM,0.9471,0.862,0.9548,0.7312,0.8279,0.8074,0.7973,0.9547

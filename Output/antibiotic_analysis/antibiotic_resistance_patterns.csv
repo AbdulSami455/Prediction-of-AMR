@@ -1,0 +1,16 @@
+Antibiotic_1,Antibiotic_2,Both_Resistant,Both_Sensitive,Mixed
+azm_sr,cip_sr,118,1520,2043
+azm_sr,cro_sr,4,3000,677
+azm_sr,cfx_sr,22,2664,995
+azm_sr,tet_sr,22,2193,1466
+azm_sr,pen_sr,19,2508,1154
+cip_sr,cro_sr,26,2055,1600
+cip_sr,cfx_sr,342,2017,1322
+cip_sr,tet_sr,637,1841,1203
+cip_sr,pen_sr,433,1955,1293
+cro_sr,cfx_sr,24,3293,364
+cro_sr,tet_sr,15,2813,853
+cro_sr,pen_sr,12,3128,541
+cfx_sr,tet_sr,146,2590,945
+cfx_sr,pen_sr,138,2900,643
+tet_sr,pen_sr,460,2751,470

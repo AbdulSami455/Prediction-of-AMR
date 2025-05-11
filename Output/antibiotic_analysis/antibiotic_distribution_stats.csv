@@ -1,0 +1,7 @@
+Antibiotic,Total_Cases,Resistant_Cases,Sensitive_Cases,Resistance_Rate,Data_Availability
+azm_sr,3681,656,3025,17.82,100.0
+cip_sr,3317,1623,1694,48.93,90.11
+cro_sr,3331,29,3302,0.87,90.49
+cfx_sr,3299,383,2916,11.61,89.62
+tet_sr,1661,854,807,51.41,45.12
+pen_sr,1654,536,1118,32.41,44.93

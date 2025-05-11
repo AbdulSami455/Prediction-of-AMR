@@ -257,17 +257,28 @@ def plot_feature_importance(model, feature_names, model_name, output_dir):
 
 def plot_geographical_distribution(metadata, output_dir):
     """Create geographical plots showing antibiotic resistance distribution."""
+    # Filter out rows with missing latitude or longitude
+    valid_metadata = metadata.dropna(subset=['Latitude', 'Longitude'])
+    
+    if len(valid_metadata) == 0:
+        print("Warning: No valid geographical data found. Skipping geographical plots.")
+        return
+    
     antibiotics = ['azm_sr', 'cip_sr', 'cro_sr', 'cfx_sr', 'tet_sr', 'pen_sr']
     
     # Create a base map centered at the mean coordinates
-    center_lat = metadata['Latitude'].mean()
-    center_lon = metadata['Longitude'].mean()
+    center_lat = valid_metadata['Latitude'].mean()
+    center_lon = valid_metadata['Longitude'].mean()
     m = folium.Map(location=[center_lat, center_lon], zoom_start=2)
     
     # Create a separate map for each antibiotic
     for antibiotic in antibiotics:
         # Filter data for current antibiotic
-        ab_data = metadata[metadata[antibiotic].notna()].copy()
+        ab_data = valid_metadata[valid_metadata[antibiotic].notna()].copy()
+        
+        if len(ab_data) == 0:
+            print(f"Warning: No data available for {antibiotic}. Skipping this antibiotic.")
+            continue
         
         # Create a new map for this antibiotic
         m_ab = folium.Map(location=[center_lat, center_lon], zoom_start=2)
@@ -324,31 +335,32 @@ def plot_geographical_distribution(metadata, output_dir):
             if row[antibiotic] == 'Resistant':
                 heat_data.append([row['Latitude'], row['Longitude'], 1])
         
-        # Add heatmap layer
-        HeatMap(heat_data).add_to(m_heat)
-        
-        # Add legend
-        legend_html = f'''
-        <div style="position: fixed; 
-                    bottom: 50px; left: 50px; width: 150px; height: 60px; 
-                    border:2px solid grey; z-index:9999; font-size:14px;
-                    background-color:white;
-                    padding: 10px;
-                    ">
-        <p><strong>{antibiotic.upper()} Resistance Heatmap</strong></p>
-        <p>Darker areas indicate higher resistance</p>
-        </div>
-        '''
-        m_heat.get_root().html.add_child(folium.Element(legend_html))
-        
-        # Save the heatmap
-        m_heat.save(os.path.join(output_dir, f'geographical_heatmap_{antibiotic}.html'))
+        if heat_data:  # Only add heatmap if there is data
+            # Add heatmap layer
+            HeatMap(heat_data).add_to(m_heat)
+            
+            # Add legend
+            legend_html = f'''
+            <div style="position: fixed; 
+                        bottom: 50px; left: 50px; width: 150px; height: 60px; 
+                        border:2px solid grey; z-index:9999; font-size:14px;
+                        background-color:white;
+                        padding: 10px;
+                        ">
+            <p><strong>{antibiotic.upper()} Resistance Heatmap</strong></p>
+            <p>Darker areas indicate higher resistance</p>
+            </div>
+            '''
+            m_heat.get_root().html.add_child(folium.Element(legend_html))
+            
+            # Save the heatmap
+            m_heat.save(os.path.join(output_dir, f'geographical_heatmap_{antibiotic}.html'))
     
     # Create a combined map with all antibiotics
     m_combined = folium.Map(location=[center_lat, center_lon], zoom_start=2)
     
     # Add markers for each location with multiple antibiotic resistance
-    for idx, row in metadata.iterrows():
+    for idx, row in valid_metadata.iterrows():
         # Count resistant antibiotics
         resistant_count = sum(1 for ab in antibiotics if row.get(ab) == 'Resistant')
         if resistant_count > 0:
